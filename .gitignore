@@ -11,8 +11,8 @@ out/
 build/
 dist/
 
-# Prisma generated client
-/generated/prisma
+# Prisma generated client (regenerated via `npx prisma generate`)
+**/generated/prisma/
 
 # TS cache
 *.tsbuildinfo
