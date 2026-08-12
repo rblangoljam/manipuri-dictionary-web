@@ -9,6 +9,8 @@ interface SearchResult {
   word: string;
   slug: string;
   sense_count: bigint | number;
+  mayek?: string | null;
+  translation?: string | null;
 }
 
 export function SearchBar({ autoFocus = false }: { autoFocus?: boolean }) {
@@ -143,7 +145,17 @@ export function SearchBar({ autoFocus = false }: { autoFocus?: boolean }) {
                     i === activeIndex ? "bg-brand-50 dark:bg-slate-800" : ""
                   }`}
                 >
-                  <span className="font-medium">{r.word}</span>
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="font-medium">{r.word}</span>
+                    {r.mayek && (
+                      <span className="meetei text-brand-600 dark:text-brand-400 truncate">
+                        {r.mayek}
+                      </span>
+                    )}
+                    {r.translation && (
+                      <span className="text-muted-2 truncate">· {r.translation}</span>
+                    )}
+                  </span>
                   <span className="text-xs text-muted-2 shrink-0 ml-3">
                     {Number(r.sense_count)} {Number(r.sense_count) === 1 ? "sense" : "senses"}
                   </span>
