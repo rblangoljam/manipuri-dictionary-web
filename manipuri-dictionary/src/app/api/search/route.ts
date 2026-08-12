@@ -24,7 +24,13 @@ export async function GET(request: Request) {
       SELECT w.id, w.word, w.slug,
              (SELECT COUNT(*) FROM word_senses ws WHERE ws.word_id = w.id AND ws.status = 'approved') as sense_count
       FROM words w
-      WHERE w.word LIKE ${`%${q}%`} OR w.search_index LIKE ${`%${q}%`}
+      WHERE w.word LIKE ${`%${q}%`}
+         OR w.search_index LIKE ${`%${q}%`}
+         OR EXISTS (
+           SELECT 1 FROM word_senses ws
+           WHERE ws.word_id = w.id AND ws.status = 'approved'
+             AND (ws.definition LIKE ${`%${q}%`} OR ws.meaning_eng_man LIKE ${`%${q}%`})
+         )
       ORDER BY
         CASE
           WHEN w.word = ${q} THEN 0
