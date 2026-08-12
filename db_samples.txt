@@ -1,0 +1,6 @@
+Sample data:
+(14, 14, '1 Bush', 'noun', 'A thicket, or place abounding in trees or shrubs; a wild\r\n  ', 'Mongsong', 'ꯃꯑꯣꯡꯁꯑꯣꯡ')
+(15, 15, '1 bye', 'noun', '', 'Namata taba sannaba mee/ lamba-mayoknanba leitraba / cricket', 'ꯅꯑꯥꯃꯇ ꯇꯑꯥꯕ ꯁꯑꯥꯟꯅꯕ ꯃꯤ/ ꯂꯝꯕꯑꯥ- ꯃꯑꯥꯌꯑꯣꯛꯅꯅꯕ ꯂꯑꯦꯇ꯭ꯔꯕ/ ꯀ꯭ꯔꯤꯀꯑꯦꯠꯇ ꯕ')
+(16, 16, '1 kitty', 'noun', '', 'Sannabagi che chabun', 'ꯁꯑꯥꯟꯅꯕꯒꯤ ꯆꯑꯦ ꯆꯕꯨꯟ')
+(17, 17, '1.   Lag', 'verb_intransitive', 'To walk or more slowly; to stay or fall behind; to linger\r\n ', 'Sotthahouba', 'ꯁꯑꯣꯠꯊꯍꯑꯧꯕ')
+(18, 18, '1 . Lake', 'noun', 'A large body of water contained in a depression of the\r\n   e', 'Pat', 'ꯄꯑꯥꯠ')

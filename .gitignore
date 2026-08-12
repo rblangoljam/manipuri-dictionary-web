@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Env secrets
+.env
+.env*.local
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Prisma generated client
+/generated/prisma
+
+# TS cache
+*.tsbuildinfo
+
+# Large data dumps (~104MB)
+manipuri_dictionary_new.sql
+manipuri_dictionary_improved.sql
+well-known.zip
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db

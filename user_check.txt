@@ -1,0 +1,2 @@
+User created:
+(1, 'Test User', 'test@example.com', 'user', 'active')

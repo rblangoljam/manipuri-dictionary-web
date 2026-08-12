@@ -1,0 +1,94 @@
+Tables: ['edit_proposals', 'editors', 'languages', 'proverbs', 'users', 'word_of_day', 'word_senses', 'words']
+
+=== edit_proposals ===
+  id: bigint(20) (null=NO, key=PRI, default=None, extra=auto_increment)
+  sense_id: bigint(20) (null=YES, key=MUL, default=None, extra=)
+  word_id: bigint(20) (null=YES, key=MUL, default=None, extra=)
+  proposed_word: varchar(255) (null=NO, key=, default=None, extra=)
+  proposed_wordtype: varchar(50) (null=NO, key=, default=, extra=)
+  proposed_definition: text (null=NO, key=, default=None, extra=)
+  proposed_meaning_eng_man: text (null=NO, key=, default=None, extra=)
+  proposed_meaning_mm: text (null=NO, key=, default=None, extra=)
+  proposed_antonyms: varchar(255) (null=NO, key=, default=, extra=)
+  proposed_synonyms: varchar(255) (null=NO, key=, default=, extra=)
+  status: enum('pending','approved','rejected') (null=NO, key=MUL, default=pending, extra=)
+  submitted_by: int(11) (null=NO, key=, default=None, extra=)
+  reviewed_by: int(11) (null=YES, key=, default=None, extra=)
+  reviewed_at: datetime (null=YES, key=, default=None, extra=)
+  rejection_reason: varchar(500) (null=YES, key=, default=None, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+
+=== editors ===
+  id: int(11) (null=NO, key=PRI, default=None, extra=auto_increment)
+  editor_code: varchar(50) (null=NO, key=UNI, default=None, extra=)
+  name: varchar(255) (null=NO, key=, default=, extra=)
+  role: enum('admin','moderator','contributor') (null=NO, key=, default=contributor, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+
+=== languages ===
+  id: int(11) (null=NO, key=PRI, default=None, extra=auto_increment)
+  language_name: varchar(100) (null=NO, key=, default=None, extra=)
+  language_code: varchar(10) (null=NO, key=UNI, default=None, extra=)
+
+=== proverbs ===
+  id: int(11) (null=NO, key=PRI, default=None, extra=auto_increment)
+  paorou: varchar(255) (null=NO, key=, default=None, extra=)
+  paorou_mm: text (null=NO, key=, default=None, extra=)
+  explaination: text (null=NO, key=, default=None, extra=)
+  language: varchar(5) (null=NO, key=, default=man, extra=)
+  status: enum('pending','approved','rejected') (null=NO, key=, default=pending, extra=)
+  author_id: int(11) (null=YES, key=, default=None, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+  updated_at: timestamp (null=NO, key=, default=current_timestamp(), extra=on update current_timestamp())
+
+=== users ===
+  id: int(11) (null=NO, key=PRI, default=None, extra=auto_increment)
+  name: varchar(100) (null=NO, key=, default=None, extra=)
+  email: varchar(100) (null=NO, key=UNI, default=None, extra=)
+  password_hash: varchar(255) (null=NO, key=, default=, extra=)
+  role: enum('user','contributor','moderator','admin') (null=NO, key=, default=user, extra=)
+  google_id: varchar(150) (null=YES, key=, default=None, extra=)
+  facebook_id: varchar(100) (null=YES, key=, default=None, extra=)
+  nos_word_submitted: int(11) (null=NO, key=, default=0, extra=)
+  nos_word_approved: int(11) (null=NO, key=, default=0, extra=)
+  nos_word_rejected: int(11) (null=NO, key=, default=0, extra=)
+  status: enum('active','banned') (null=NO, key=, default=active, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+  updated_at: timestamp (null=NO, key=, default=current_timestamp(), extra=on update current_timestamp())
+
+=== word_of_day ===
+  id: int(11) (null=NO, key=PRI, default=None, extra=auto_increment)
+  word_id: bigint(20) (null=NO, key=MUL, default=None, extra=)
+  display_date: date (null=NO, key=MUL, default=None, extra=)
+  is_active: tinyint(1) (null=NO, key=, default=0, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+
+=== word_senses ===
+  id: bigint(20) (null=NO, key=PRI, default=None, extra=auto_increment)
+  word_id: bigint(20) (null=NO, key=MUL, default=None, extra=)
+  wordtype: varchar(50) (null=NO, key=MUL, default=, extra=)
+  wordtype_raw: varchar(50) (null=NO, key=, default=, extra=)
+  definition: text (null=NO, key=MUL, default=None, extra=)
+  meaning_eng_man: text (null=NO, key=, default=None, extra=)
+  meaning_mm: text (null=NO, key=, default=None, extra=)
+  antonyms: varchar(255) (null=NO, key=, default=, extra=)
+  synonyms: varchar(255) (null=NO, key=, default=, extra=)
+  status: enum('pending','approved','rejected') (null=NO, key=MUL, default=approved, extra=)
+  editor_id: int(11) (null=YES, key=MUL, default=None, extra=)
+  submitted_by: int(11) (null=YES, key=, default=None, extra=)
+  reviewed_by: int(11) (null=YES, key=, default=None, extra=)
+  reviewed_at: datetime (null=YES, key=, default=None, extra=)
+  rejection_reason: varchar(500) (null=YES, key=, default=None, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+  updated_at: timestamp (null=NO, key=, default=current_timestamp(), extra=on update current_timestamp())
+  meaning_mm_unicode: text (null=YES, key=, default=None, extra=)
+
+=== words ===
+  id: bigint(20) (null=NO, key=PRI, default=None, extra=auto_increment)
+  word: varchar(255) (null=NO, key=MUL, default=None, extra=)
+  slug: varchar(255) (null=NO, key=UNI, default=None, extra=)
+  first_letter: char(1) (null=NO, key=MUL, default=None, extra=)
+  search_index: varchar(255) (null=NO, key=MUL, default=None, extra=)
+  created_at: timestamp (null=NO, key=, default=current_timestamp(), extra=)
+  updated_at: timestamp (null=NO, key=, default=current_timestamp(), extra=on update current_timestamp())
+

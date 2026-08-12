@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^1.31.0",
+    "mariadb": "^3.5.3",
+    "next-auth": "^5.0.0-beta.32",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "prisma": "^7.9.1"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.9.1": true,
+    "prisma@7.9.1": true
+  }
+}

@@ -1,0 +1,231 @@
+// Prisma schema for Manipuri Dictionary
+// Based on existing database structure (preserved via introspection)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ============================================
+// Existing dictionary tables (preserved)
+// ============================================
+
+model Word {
+  id           BigInt      @id @default(autoincrement())
+  word         String      @db.VarChar(255)
+  slug         String      @unique @db.VarChar(255)
+  firstLetter  String      @map("first_letter") @db.Char(1)
+  searchIndex  String      @map("search_index") @db.VarChar(255)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  senses            WordSense[]
+  editProposals     EditProposal[]
+  wordOfDay         WordOfDay[]
+  bookmarks         Bookmark[]
+
+  @@index([word])
+  @@index([firstLetter])
+  @@index([searchIndex])
+  @@map("words")
+}
+
+model WordSense {
+  id               BigInt   @id @default(autoincrement())
+  wordId           BigInt   @map("word_id")
+  wordtype         String   @db.VarChar(50)
+  wordtypeRaw      String   @map("wordtype_raw") @db.VarChar(50)
+  definition       String   @db.Text
+  meaningEngMan    String   @map("meaning_eng_man") @db.Text
+  meaningMm        String   @map("meaning_mm") @db.Text
+  antonyms         String   @db.VarChar(255)
+  synonyms         String   @db.VarChar(255)
+  status           SenseStatus @default(approved)
+  editorId         Int?     @map("editor_id")
+  submittedBy      Int?     @map("submitted_by")
+  reviewedBy       Int?     @map("reviewed_by")
+  reviewedAt       DateTime? @map("reviewed_at") @db.DateTime(0)
+  rejectionReason  String?  @map("rejection_reason") @db.VarChar(500)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  meaningMmUnicode String?  @map("meaning_mm_unicode") @db.Text
+
+  word          Word            @relation(fields: [wordId], references: [id])
+  editProposals EditProposal[]
+
+  @@index([wordId])
+  @@index([wordtype])
+  @@index([status])
+  @@map("word_senses")
+}
+
+model EditProposal {
+  id                       BigInt   @id @default(autoincrement())
+  senseId                  BigInt?  @map("sense_id")
+  wordId                   BigInt?  @map("word_id")
+  proposedWord             String   @map("proposed_word") @db.VarChar(255)
+  proposedWordtype         String   @map("proposed_wordtype") @db.VarChar(50)
+  proposedDefinition       String   @map("proposed_definition") @db.Text
+  proposedMeaningEngMan    String   @map("proposed_meaning_eng_man") @db.Text
+  proposedMeaningMm        String   @map("proposed_meaning_mm") @db.Text
+  proposedAntonyms         String   @map("proposed_antonyms") @db.VarChar(255)
+  proposedSynonyms         String   @map("proposed_synonyms") @db.VarChar(255)
+  status                   ProposalStatus @default(pending)
+  submittedBy              Int
+  reviewedBy               Int?
+  reviewedAt               DateTime? @map("reviewed_at") @db.DateTime(0)
+  rejectionReason          String?  @map("rejection_reason") @db.VarChar(500)
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  word  Word?      @relation(fields: [wordId], references: [id])
+  sense WordSense? @relation(fields: [senseId], references: [id])
+
+  moderationLogs ModerationLog[]
+
+  @@index([senseId])
+  @@index([wordId])
+  @@index([status])
+  @@map("edit_proposals")
+}
+
+model WordOfDay {
+  id          Int      @id @default(autoincrement())
+  wordId      BigInt   @map("word_id")
+  displayDate DateTime @map("display_date") @db.Date
+  isActive    Boolean  @default(false) @map("is_active") @db.TinyInt
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  word Word @relation(fields: [wordId], references: [id])
+
+  @@index([wordId])
+  @@index([displayDate])
+  @@map("word_of_day")
+}
+
+model Editor {
+  id         Int      @id @default(autoincrement())
+  editorCode String   @unique @map("editor_code") @db.VarChar(50)
+  name       String   @db.VarChar(255)
+  role       EditorRole @default(contributor)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@map("editors")
+}
+
+model Language {
+  id           Int    @id @default(autoincrement())
+  languageName String @map("language_name") @db.VarChar(100)
+  languageCode String @unique @map("language_code") @db.VarChar(10)
+
+  @@map("languages")
+}
+
+model Proverb {
+  id           Int      @id @default(autoincrement())
+  paorou       String   @db.VarChar(255)
+  paorouMm     String   @map("paorou_mm") @db.Text
+  explaination String   @db.Text
+  language     String   @default("man") @db.VarChar(5)
+  status       ProposalStatus @default(pending)
+  authorId     Int?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("proverbs")
+}
+
+// ============================================
+// Existing users table (preserved)
+// ============================================
+
+model User {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(100)
+  email         String   @unique @db.VarChar(100)
+  passwordHash  String   @map("password_hash") @db.VarChar(255)
+  role          UserRole @default(user)
+  googleId      String?  @map("google_id") @db.VarChar(150)
+  facebookId    String?  @map("facebook_id") @db.VarChar(100)
+  nosWordSubmitted Int   @default(0) @map("nos_word_submitted")
+  nosWordApproved   Int   @default(0) @map("nos_word_approved")
+  nosWordRejected   Int   @default(0) @map("nos_word_rejected")
+  status            UserStatus @default(active)
+  resetToken        String?    @map("reset_token") @db.VarChar(64)
+  resetTokenExpires DateTime?  @map("reset_token_expires") @db.DateTime(0)
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  bookmarks      Bookmark[]
+  moderationLogs ModerationLog[]
+
+  @@map("users")
+}
+
+model Bookmark {
+  id        BigInt   @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  wordId    BigInt   @map("word_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  user User @relation(fields: [userId], references: [id])
+  word Word @relation(fields: [wordId], references: [id])
+
+  @@unique([userId, wordId])
+  @@index([userId])
+  @@index([wordId])
+  @@map("bookmarks")
+}
+
+model ModerationLog {
+  id          BigInt   @id @default(autoincrement())
+  moderatorId Int      @map("moderator_id")
+  proposalId  BigInt?  @map("proposal_id")
+  action      String   @db.VarChar(20)
+  note        String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  moderator User           @relation(fields: [moderatorId], references: [id])
+  proposal  EditProposal?  @relation(fields: [proposalId], references: [id])
+
+  @@index([moderatorId])
+  @@index([proposalId])
+  @@map("moderation_logs")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum SenseStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ProposalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum EditorRole {
+  admin
+  moderator
+  contributor
+}
+
+enum UserRole {
+  user
+  contributor
+  moderator
+  admin
+}
+
+enum UserStatus {
+  active
+  banned
+}

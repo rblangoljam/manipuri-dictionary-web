@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-meetei: var(--font-meetei-mayek), var(--font-inter), sans-serif;
+
+  /* Brand colors */
+  --color-brand-50: #fef3ee;
+  --color-brand-100: #fde8dc;
+  --color-brand-200: #fac8ad;
+  --color-brand-300: #f6a37d;
+  --color-brand-400: #ec7a4f;
+  --color-brand-500: #d95f2b;
+  --color-brand-600: #bb4d00;
+  --color-brand-700: #9c3d00;
+  --color-brand-800: #7a3000;
+  --color-brand-900: #5c2400;
+
+  /* Neutral */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-muted-2: #94a3b8;
+
+  /* Semantic */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+:root {
+  --background: #f8fafc;
+  --foreground: #1e293b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f172a;
+    --foreground: #e2e8f0;
+  }
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Meitei Mayek text */
+.meetei {
+  font-family: var(--font-meetei), sans-serif;
+}
+
+.font-meetei {
+  font-family: var(--font-meetei), sans-serif;
+}
+
+/* Focus visible — form controls have their own ring-based focus styles */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-2);
+}

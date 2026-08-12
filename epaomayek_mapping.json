@@ -1,0 +1,275 @@
+{
+  " ": {
+    "glyph_name": "space"
+  },
+  "!": {
+    "glyph_name": "exclam"
+  },
+  "\"": {
+    "glyph_name": "quotedbl"
+  },
+  "#": {
+    "glyph_name": "numbersign"
+  },
+  "$": {
+    "glyph_name": "dollar"
+  },
+  "%": {
+    "glyph_name": "percent"
+  },
+  "&": {
+    "glyph_name": "ampersand"
+  },
+  "'": {
+    "glyph_name": "quotesingle"
+  },
+  "(": {
+    "glyph_name": "parenleft"
+  },
+  ")": {
+    "glyph_name": "parenright"
+  },
+  "*": {
+    "glyph_name": "asterisk"
+  },
+  "+": {
+    "glyph_name": "plus"
+  },
+  ",": {
+    "glyph_name": "comma"
+  },
+  "-": {
+    "glyph_name": "ch280"
+  },
+  ".": {
+    "glyph_name": "period"
+  },
+  "/": {
+    "glyph_name": "slash"
+  },
+  "0": {
+    "glyph_name": "zero"
+  },
+  "1": {
+    "glyph_name": "one"
+  },
+  "2": {
+    "glyph_name": "two"
+  },
+  "3": {
+    "glyph_name": "three"
+  },
+  "4": {
+    "glyph_name": "four"
+  },
+  "5": {
+    "glyph_name": "five"
+  },
+  "6": {
+    "glyph_name": "six"
+  },
+  "7": {
+    "glyph_name": "seven"
+  },
+  "8": {
+    "glyph_name": "eight"
+  },
+  "9": {
+    "glyph_name": "nine"
+  },
+  ":": {
+    "glyph_name": "colon"
+  },
+  ";": {
+    "glyph_name": "semicolon"
+  },
+  "<": {
+    "glyph_name": "less"
+  },
+  "=": {
+    "glyph_name": "equal"
+  },
+  ">": {
+    "glyph_name": "greater"
+  },
+  "?": {
+    "glyph_name": "question"
+  },
+  "@": {
+    "glyph_name": "at"
+  },
+  "A": {
+    "glyph_name": "A"
+  },
+  "B": {
+    "glyph_name": "B"
+  },
+  "D": {
+    "glyph_name": "D"
+  },
+  "E": {
+    "glyph_name": "E"
+  },
+  "G": {
+    "glyph_name": "G"
+  },
+  "H": {
+    "glyph_name": "H"
+  },
+  "I": {
+    "glyph_name": "I"
+  },
+  "J": {
+    "glyph_name": "J"
+  },
+  "K": {
+    "glyph_name": "K"
+  },
+  "L": {
+    "glyph_name": "L"
+  },
+  "M": {
+    "glyph_name": "M"
+  },
+  "N": {
+    "glyph_name": "N"
+  },
+  "O": {
+    "glyph_name": "O"
+  },
+  "P": {
+    "glyph_name": "P"
+  },
+  "Q": {
+    "glyph_name": "Q"
+  },
+  "R": {
+    "glyph_name": "R"
+  },
+  "S": {
+    "glyph_name": "S"
+  },
+  "T": {
+    "glyph_name": "T"
+  },
+  "U": {
+    "glyph_name": "U"
+  },
+  "V": {
+    "glyph_name": "V"
+  },
+  "W": {
+    "glyph_name": "W"
+  },
+  "X": {
+    "glyph_name": "X"
+  },
+  "Y": {
+    "glyph_name": "Y"
+  },
+  "Z": {
+    "glyph_name": "Z"
+  },
+  "[": {
+    "glyph_name": "bracketleft"
+  },
+  "\\": {
+    "glyph_name": "backslash"
+  },
+  "]": {
+    "glyph_name": "bracketright"
+  },
+  "^": {
+    "glyph_name": "asciicircum"
+  },
+  "_": {
+    "glyph_name": "underscore"
+  },
+  "`": {
+    "glyph_name": "grave"
+  },
+  "a": {
+    "glyph_name": "a"
+  },
+  "b": {
+    "glyph_name": "b"
+  },
+  "c": {
+    "glyph_name": "c"
+  },
+  "d": {
+    "glyph_name": "d"
+  },
+  "e": {
+    "glyph_name": "e"
+  },
+  "f": {
+    "glyph_name": "f"
+  },
+  "g": {
+    "glyph_name": "g"
+  },
+  "h": {
+    "glyph_name": "h"
+  },
+  "i": {
+    "glyph_name": "i"
+  },
+  "j": {
+    "glyph_name": "j"
+  },
+  "k": {
+    "glyph_name": "k"
+  },
+  "l": {
+    "glyph_name": "l"
+  },
+  "m": {
+    "glyph_name": "m"
+  },
+  "n": {
+    "glyph_name": "n"
+  },
+  "o": {
+    "glyph_name": "o"
+  },
+  "p": {
+    "glyph_name": "p"
+  },
+  "q": {
+    "glyph_name": "q"
+  },
+  "r": {
+    "glyph_name": "r"
+  },
+  "s": {
+    "glyph_name": "s"
+  },
+  "t": {
+    "glyph_name": "t"
+  },
+  "u": {
+    "glyph_name": "u"
+  },
+  "v": {
+    "glyph_name": "v"
+  },
+  "w": {
+    "glyph_name": "w"
+  },
+  "y": {
+    "glyph_name": "y"
+  },
+  "{": {
+    "glyph_name": "braceleft"
+  },
+  "|": {
+    "glyph_name": "bar"
+  },
+  "}": {
+    "glyph_name": "braceright"
+  },
+  "~": {
+    "glyph_name": "asciitilde"
+  }
+}

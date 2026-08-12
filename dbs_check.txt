@@ -1,0 +1,3 @@
+Databases: ['information_schema', 'manipuri_dictionary', 'mysql', 'performance_schema', 'phpmyadmin', 'test']
+
+manipuri_dictionary: words count = 113936
