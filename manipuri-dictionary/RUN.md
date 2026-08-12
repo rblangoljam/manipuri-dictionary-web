@@ -241,6 +241,12 @@ npx.cmd --prefix manipuri-dictionary tsx scripts/test-meitei-mayek.ts
 
 ---
 
+## Future Features / Roadmap
+
+A full feature roadmap is maintained in **[ROADMAP.md](./ROADMAP.md)** — it lists what's already implemented and the planned improvements across Search & Discovery, Content Richness, Learning & Engagement, Meitei Mayek–specific tools, Platform & Technical, and Admin / Data Quality (including a bulk translate tool to address the ~93% of senses currently lacking Manipuri content).
+
+---
+
 ## Troubleshooting
 
 | Problem                                   | Fix                                                            |
