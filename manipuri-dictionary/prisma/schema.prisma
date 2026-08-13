@@ -20,6 +20,7 @@ model Word {
   slug         String      @unique @db.VarChar(255)
   firstLetter  String      @map("first_letter") @db.Char(1)
   searchIndex  String      @map("search_index") @db.VarChar(255)
+  languageId   Int?        @map("language_id")
   createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -27,11 +28,33 @@ model Word {
   editProposals     EditProposal[]
   wordOfDay         WordOfDay[]
   bookmarks         Bookmark[]
+  language          Language?          @relation(fields: [languageId], references: [id])
+  translations      WordTranslation[]
 
   @@index([word])
   @@index([firstLetter])
   @@index([searchIndex])
+  @@index([languageId])
   @@map("words")
+}
+
+model WordTranslation {
+  id          BigInt   @id @default(autoincrement())
+  wordId      BigInt   @map("word_id")
+  languageId  Int      @map("language_id")
+  translation String   @db.VarChar(255)
+  mayekUnicode String? @map("mayek_unicode") @db.Text
+  wordtype    String   @default("") @db.VarChar(50)
+  definition  String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  word     Word     @relation(fields: [wordId], references: [id])
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([wordId, languageId, translation(100)])
+  @@index([wordId])
+  @@index([languageId])
+  @@map("word_translations")
 }
 
 model WordSense {
@@ -120,6 +143,9 @@ model Language {
   id           Int    @id @default(autoincrement())
   languageName String @map("language_name") @db.VarChar(100)
   languageCode String @unique @map("language_code") @db.VarChar(10)
+
+  words        Word[]
+  translations WordTranslation[]
 
   @@map("languages")
 }
