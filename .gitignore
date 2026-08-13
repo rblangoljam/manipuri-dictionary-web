@@ -25,6 +25,10 @@ well-known.zip
 # Logs
 *.log
 
+# Extracted EPUB pages (regenerable from the .epub source files)
+data/epub_unzipped/
+ia_dli_csl_6718/epub_unzipped/
+
 # OS junk
 .DS_Store
 Thumbs.db

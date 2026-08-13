@@ -196,6 +196,24 @@ Roles: **USER**, **MODERATOR**, **ADMIN** (the `contributor` role also exists in
 
 ---
 
+## Multilingual Schema
+
+The database supports multiple source languages and cross-language meanings:
+
+- **words.language_id** - tags each headword with its source language (the list lives in the existing `languages` table; English and Manipuri are tagged).
+- **word_translations** - the cross-language hub: (word_id, language_id, translation, mayek_unicode, wordtype, definition), unique per (word_id, language_id, translation). It links any headword to its meanings in any other language.
+- **languages** - already seeded with Manipur's languages (Manipuri, Aimol, Anal, Chiru, Chothe, Hmar, Koireng); English added by the migration.
+
+Backfilled data: 821 imported Manipuri headwords -> their English glosses; 12,882 English headwords -> their Manipuri meanings. Verified sample: searching "contemporary" returns houminnaba with Mayek + translation + language "mn".
+
+The /api/search route now reads word_translations for translation + Mayek, matches across languages, and returns a `language` code per result.
+
+Adding a new language later (e.g. Tangkhul): 1) INSERT into languages; 2) add headwords to words with that language_id; 3) add meanings to word_translations.
+
+Migration scripts (repo root): multilang_migrate.js (schema + tagging) and multilang_backfill.js (hub population). Both are repeatable/idempotent.
+
+---
+
 ## Meitei Mayek Module
 
 Meitei Mayek text conversion utilities live in `src/lib/meitei-mayek/` (mapping, converter, index). A test script is available:
