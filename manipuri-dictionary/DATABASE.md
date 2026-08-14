@@ -148,6 +148,7 @@ Moderation queue for user submissions.
 | `proposed_meaning_eng_man` | TEXT | |
 | `proposed_meaning_mm` | TEXT | |
 | `proposed_antonyms` / `proposed_synonyms` | VARCHAR(255) | |
+| `proposed_meanings` | JSON NULL | Full per-meaning structure from the Word Type / Grammar system: array of definitions, each with its own word type and grammar. The legacy columns mirror the FIRST meaning for backward compatibility. |
 | `status` | ENUM(`pending`,`approved`,`rejected`) | |
 | `submitted_by` | INT | → users.id. |
 | `reviewed_by` | INT NULL | |
