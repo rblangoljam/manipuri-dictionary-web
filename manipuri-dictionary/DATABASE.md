@@ -9,6 +9,7 @@ This document describes the current database schema of the Manipuri Dictionary w
 | Table | Purpose |
 |---|---|
 | `words` | Every headword (English and Manipuri). Tagged with a source language. |
+| `wordtypes` | **Part-of-speech reference table**: short form (`code`) → canonical long form (`long_form`). |
 | `word_senses` | The definitions/meanings of a headword (the "sense" rows). |
 | `word_translations` | **Cross-language hub** — a word's meaning in any other language (added for multilingual support). |
 | `languages` | Registry of supported languages (Manipuri, English, Tangkhul (future), etc.). |
@@ -38,6 +39,26 @@ A headword in a specific language.
 | `updated_at` | TIMESTAMP | |
 
 **Relations:** `senses` (word_senses), `translations` (word_translations), `language` (languages), `bookmarks`, `editProposals`, `wordOfDay`.
+
+---
+
+## wordtypes  ← part-of-speech reference table (added)
+
+A lookup/reference table mapping every part-of-speech **short form** (as stored across `word_senses.wordtype` / `word_translations.wordtype`) to a canonical **long form**. This is the single source of truth for POS names, so the UI can display `noun` instead of `n`, `verb transitive` instead of `v.t.`, etc.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INT PK AUTO | |
+| `code` | VARCHAR(128) UNIQUE | The value as stored in the DB (short/raw form), e.g. `n`, `v.t.`, `a. & adv.`, `noun`. |
+| `long_form` | VARCHAR(128) | Canonical full name, e.g. `noun`, `verb transitive`, `adjective & adverb`. |
+| `category` | VARCHAR(32) | `canonical` (already full, code == long_form) or `alias` (mapped short form). |
+
+**Seeding (repo root `create_wordtypes_table.js`, idempotent):**
+- 48 canonical long forms (identity rows)
+- Common abbreviation aliases (`n` → `noun`, `vt` → `verb transitive`, ...)
+- All **292 distinct values** currently in the DB (auto-added; only 7 of them map to a different canonical long form, the rest were already canonical)
+
+**Usage plan (not yet applied):** join/display `wordtype -> long_form` anywhere POS is shown; a future optional migration can rewrite `word_senses.wordtype` / `word_translations.wordtype` to the canonical `long_form`, keeping the original marker in `wordtype_raw` for provenance. Helper scripts `audit_wordtypes.js` (inventory) and `normalize_wordtypes.js` (expansion logic, dry-run + `--apply`) exist at the repo root.
 
 ---
 
