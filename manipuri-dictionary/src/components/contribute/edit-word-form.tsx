@@ -2,22 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MeiteiMayekEditor } from "@/components/meitei-mayek/editor";
+import { Plus } from "lucide-react";
+import { MeaningEditor } from "@/components/contribute/meaning-editor";
+import { MeaningKey, emptyGrammar, normalizeLegacyWordType } from "@/lib/word-types";
 
 interface FieldErrors {
-  [key: string]: string[] | undefined;
+  meanings?: string;
+  word?: string[];
+  [key: string]: string[] | string | undefined;
+}
+
+interface SenseData {
+  senseId: string;
+  wordtype: string;
+  definition: string;
+  meaningEngMan: string;
+  meaningMmUnicode: string | null;
+  synonyms: string;
+  antonyms: string;
 }
 
 interface WordData {
-  id: bigint;
+  id: string;
   word: string;
-  sense_id?: bigint;
-  wordtype: string;
-  definition: string;
-  meaning_eng_man: string;
-  meaning_mm_unicode: string | null;
-  synonyms: string;
-  antonyms: string;
+  senses: SenseData[];
+}
+
+function senseToMeaning(s: SenseData): MeaningKey {
+  const { wordType, grammar } = normalizeLegacyWordType(s.wordtype);
+  return {
+    definition: s.definition,
+    wordType,
+    wordtypeRaw: s.wordtype,
+    grammar: { ...emptyGrammar(wordType), ...grammar },
+    meaningEngMan: s.meaningEngMan,
+    meaningMm: s.meaningMmUnicode ?? "",
+    synonyms: s.synonyms,
+    antonyms: s.antonyms,
+  };
+}
+
+function defaultMeaning(): MeaningKey {
+  return {
+    definition: "",
+    wordType: "noun",
+    wordtypeRaw: "noun",
+    grammar: emptyGrammar("noun"),
+    meaningEngMan: "",
+    meaningMm: "",
+    synonyms: "",
+    antonyms: "",
+  };
 }
 
 export function EditWordForm({ slug }: { slug: string }) {
@@ -27,67 +62,45 @@ export function EditWordForm({ slug }: { slug: string }) {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [form, setForm] = useState({
-    wordId: "",
-    senseId: "",
-    word: "",
-    wordtype: "",
-    definition: "",
-    meaningEngMan: "",
-    meaningMm: "",
-    synonyms: "",
-    antonyms: "",
-  });
+  const [wordId, setWordId] = useState("");
+  const [word, setWord] = useState("");
+  const [meanings, setMeanings] = useState<MeaningKey[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-
     async function loadWord() {
       try {
         const res = await fetch(`/api/contribute/word?slug=${encodeURIComponent(slug)}`);
         const data = await res.json();
-
         if (cancelled) return;
-
         if (!res.ok || !data.word) {
           setNotFound(true);
           return;
         }
-
         const w: WordData = data.word;
-        setForm({
-          wordId: w.id.toString(),
-          senseId: w.sense_id ? w.sense_id.toString() : "",
-          word: w.word,
-          wordtype: w.wordtype,
-          definition: w.definition,
-          meaningEngMan: w.meaning_eng_man,
-          meaningMm: w.meaning_mm_unicode ?? "",
-          synonyms: w.synonyms,
-          antonyms: w.antonyms,
-        });
+        setWordId(w.id);
+        setWord(w.word);
+        setMeanings(w.senses.length ? w.senses.map(senseToMeaning) : [defaultMeaning()]);
       } catch {
         if (!cancelled) setNotFound(true);
       } finally {
         if (!cancelled) setLoadingWord(false);
       }
     }
-
     loadWord();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [slug]);
 
-  const update = (field: string, value: string) => {
-    setForm((f) => ({ ...f, [field]: value }));
-    setFieldErrors((fe) => ({ ...fe, [field]: undefined }));
-  };
+  const updateMeaning = (i: number, m: MeaningKey) =>
+    setMeanings((arr) => arr.map((x, idx) => (idx === i ? m : x)));
+
+  const addMeaning = () => setMeanings((arr) => [...arr, defaultMeaning()]);
+  const removeMeaning = (i: number) =>
+    setMeanings((arr) => (arr.length > 1 ? arr.filter((_, idx) => idx !== i) : arr));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-
     setError(null);
     setFieldErrors({});
     setLoading(true);
@@ -96,14 +109,12 @@ export function EditWordForm({ slug }: { slug: string }) {
       const res = await fetch("/api/contribute/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ wordId, word, meanings }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.fieldErrors) {
-          setFieldErrors(data.fieldErrors);
-        }
+        if (data.fieldErrors) setFieldErrors(data.fieldErrors);
         setError(data.error ?? "Failed to submit edit");
         return;
       }
@@ -119,12 +130,12 @@ export function EditWordForm({ slug }: { slug: string }) {
 
   const inputClass =
     "w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500";
-  const labelClass = "block text-sm font-medium mb-1.5";
 
   if (loadingWord) {
     return (
       <div className="py-12 text-center text-muted-foreground">
-        Loading word…  <span className="inline-block w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin align-middle" />
+        Loading word…{" "}
+        <span className="inline-block w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin align-middle" />
       </div>
     );
   }
@@ -145,142 +156,68 @@ export function EditWordForm({ slug }: { slug: string }) {
     );
   }
 
+  const meaningsError = (fieldErrors.meanings as string) || undefined;
+  const wordError = Array.isArray(fieldErrors.word) ? fieldErrors.word[0] : undefined;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="word" className={labelClass}>
-            Word *
-          </label>
-          <input
-            id="word"
-            type="text"
-            value={form.word}
-            onChange={(e) => update("word", e.target.value)}
-            className={inputClass}
-            required
-          />
-          {fieldErrors.word && (
-            <p className="text-sm text-danger mt-1">{fieldErrors.word[0]}</p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="wordtype" className={labelClass}>
-            Word type *
-          </label>
-          <input
-            id="wordtype"
-            type="text"
-            value={form.wordtype}
-            onChange={(e) => update("wordtype", e.target.value)}
-            className={inputClass}
-            required
-          />
-          {fieldErrors.wordtype && (
-            <p className="text-sm text-danger mt-1">{fieldErrors.wordtype[0]}</p>
-          )}
-        </div>
-      </div>
-
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       <div>
-        <label htmlFor="definition" className={labelClass}>
-          Definition *
+        <label htmlFor="word" className="block text-sm font-medium mb-1.5">
+          Word *
         </label>
-        <textarea
-          id="definition"
-          value={form.definition}
-          onChange={(e) => update("definition", e.target.value)}
-          rows={3}
+        <input
+          id="word"
+          type="text"
+          value={word}
+          onChange={(e) => setWord(e.target.value)}
           className={inputClass}
           required
         />
-        {fieldErrors.definition && (
-          <p className="text-sm text-danger mt-1">{fieldErrors.definition[0]}</p>
-        )}
+        {wordError && <p className="text-sm text-danger mt-1">{wordError}</p>}
       </div>
 
-      <div>
-        <label htmlFor="meaningEngMan" className={labelClass}>
-          English / Manipuri meaning *
-        </label>
-        <textarea
-          id="meaningEngMan"
-          value={form.meaningEngMan}
-          onChange={(e) => update("meaningEngMan", e.target.value)}
-          rows={2}
-          className={inputClass}
-          required
-        />
-        {fieldErrors.meaningEngMan && (
-          <p className="text-sm text-danger mt-1">
-            {fieldErrors.meaningEngMan[0]}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="meaningMm" className={labelClass}>
-          Meitei Mayek meaning
-        </label>
-        <MeiteiMayekEditor
-          id="meaningMm"
-          value={form.meaningMm}
-          onChange={(v) => update("meaningMm", v)}
-          rows={2}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="synonyms" className={labelClass}>
-            Synonyms
-          </label>
-          <input
-            id="synonyms"
-            type="text"
-            value={form.synonyms}
-            onChange={(e) => update("synonyms", e.target.value)}
-            className={inputClass}
+      <div className="space-y-4">
+        <p className="text-sm font-semibold text-muted-foreground">
+          Meanings{" "}
+          <span className="font-normal text-muted-2">
+            (each meaning has its own word type)
+          </span>
+        </p>
+        {meanings.map((m, i) => (
+          <MeaningEditor
+            key={i}
+            index={i}
+            meaning={m}
+            canRemove={meanings.length > 1}
+            onRemove={() => removeMeaning(i)}
+            onChange={(updated) => updateMeaning(i, updated)}
           />
-          {fieldErrors.synonyms && (
-            <p className="text-sm text-danger mt-1">{fieldErrors.synonyms[0]}</p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="antonyms" className={labelClass}>
-            Antonyms
-          </label>
-          <input
-            id="antonyms"
-            type="text"
-            value={form.antonyms}
-            onChange={(e) => update("antonyms", e.target.value)}
-            className={inputClass}
-          />
-          {fieldErrors.antonyms && (
-            <p className="text-sm text-danger mt-1">{fieldErrors.antonyms[0]}</p>
-          )}
-        </div>
+        ))}
+        {meaningsError && <p className="text-sm text-danger">{meaningsError}</p>}
       </div>
+
+      <button
+        type="button"
+        onClick={addMeaning}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-border text-sm font-medium text-muted-foreground hover:border-brand-500 hover:text-brand-600 transition-colors"
+      >
+        <Plus className="w-4 h-4" />
+        Add Another Meaning
+      </button>
 
       {error && (
-        <p
-          role="alert"
-          className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2"
-        >
+        <p role="alert" className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
 
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? "Submitting…" : "Submit edit suggestion"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-5 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+      >
+        {loading ? "Submitting…" : "Submit edit suggestion"}
+      </button>
     </form>
   );
 }
