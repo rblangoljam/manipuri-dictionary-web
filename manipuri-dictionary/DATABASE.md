@@ -53,12 +53,18 @@ A lookup/reference table mapping every part-of-speech **short form** (as stored 
 | `long_form` | VARCHAR(128) | Canonical full name, e.g. `noun`, `verb transitive`, `adjective & adverb`. |
 | `category` | VARCHAR(32) | `canonical` (already full, code == long_form) or `alias` (mapped short form). |
 
-**Seeding (repo root `create_wordtypes_table.js`, idempotent):**
-- 48 canonical long forms (identity rows)
-- Common abbreviation aliases (`n` → `noun`, `vt` → `verb transitive`, ...)
-- All **292 distinct values** currently in the DB (auto-added; only 7 of them map to a different canonical long form, the rest were already canonical)
+**Seeding (repo root `create_wordtypes_table.js`, idempotent):** canonical labels per category + abbreviation aliases + **all 292 distinct values** currently in the DB (each row tagged with its resolved category). Currently seeded: 363 rows.
 
-**Usage plan (not yet applied):** join/display `wordtype -> long_form` anywhere POS is shown; a future optional migration can rewrite `word_senses.wordtype` / `word_translations.wordtype` to the canonical `long_form`, keeping the original marker in `wordtype_raw` for provenance. Helper scripts `audit_wordtypes.js` (inventory) and `normalize_wordtypes.js` (expansion logic, dry-run + `--apply`) exist at the repo root.
+**Categories (seed groups):**
+- `word_type` — primary part of speech: noun, pronoun, verb, adjective, adverb, preposition, conjunction, interjection, numeral (+ aliases `n`, `v`, `a.`, `adv`, ...)
+- `verb_type` — transitive, intransitive, both, auxiliary (+ aliases `vt`, `vi`, ...)
+- `verb_form` — imperative, present/past/perfect participle, preterit, preterit perfect, imperfect (+ aliases `imp.`, `p.p.`, ...)
+- `noun_feature` — singular, plural, masculine, feminine (+ aliases `pl`, `f.`, ...)
+- `adjective_form` — comparative, superlative (+ aliases `compar.`, `superl.`, ...)
+- `word_form` — prefix, suffix (+ aliases `pref.`, `suff.`)
+- `other` — question, object, unknown, plus any legacy compound/raw values not resolvable to a canonical label
+
+**Usage plan (not yet applied):** display `wordtype -> long_form` anywhere POS is shown; a future optional migration can rewrite `word_senses.wordtype` / `word_translations.wordtype` to canonical `long_form` (with `wordtype_raw` keeping the original marker). Future Manipuri grammar rows can then store a primary `word_type` plus optional feature columns (e.g. `verb_type`, `verb_form`, `noun_feature`). Helper scripts `audit_wordtypes.js` (inventory) and `normalize_wordtypes.js` (expansion logic, dry-run + `--apply`) exist at the repo root.
 
 ---
 
