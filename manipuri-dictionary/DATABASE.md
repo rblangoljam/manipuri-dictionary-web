@@ -51,7 +51,7 @@ A lookup/reference table mapping every part-of-speech **short form** (as stored 
 | `id` | INT PK AUTO | |
 | `code` | VARCHAR(128) UNIQUE | The value as stored in the DB (short/raw form), e.g. `n`, `v.t.`, `a. & adv.`, `noun`. |
 | `long_form` | VARCHAR(128) | Canonical full name, e.g. `noun`, `verb transitive`, `adjective & adverb`. |
-| `category` | VARCHAR(32) | `canonical` (already full, code == long_form) or `alias` (mapped short form). |
+| `category` | VARCHAR(32) | Grammatical group: `word_type`, `verb_type`, `verb_form`, `noun_feature`, `adjective_form`, `word_form`, or `other` (legacy/compound values). |
 
 **Seeding (repo root `create_wordtypes_table.js`, idempotent):** canonical labels per category + abbreviation aliases + **all 292 distinct values** currently in the DB (each row tagged with its resolved category). Currently seeded: 363 rows.
 
