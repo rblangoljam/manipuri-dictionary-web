@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { MeaningEditor } from "@/components/contribute/meaning-editor";
@@ -10,6 +10,12 @@ interface FieldErrors {
   meanings?: string;
   word?: string[];
   [key: string]: string[] | string | undefined;
+}
+
+interface LanguageOption {
+  id: number;
+  name: string;
+  code: string;
 }
 
 function defaultMeaning(): MeaningKey {
@@ -31,20 +37,32 @@ export function NewWordForm() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [word, setWord] = useState("");
+  const [languageId, setLanguageId] = useState<number | null>(1);
+  const [languages, setLanguages] = useState<LanguageOption[]>([]);
   const [meanings, setMeanings] = useState<MeaningKey[]>([defaultMeaning()]);
+
+  useEffect(() => {
+    fetch("/api/languages")
+      .then((r) => r.json())
+      .then((d) => {
+        const list: LanguageOption[] = d.languages ?? [];
+        setLanguages(list);
+        const mn = list.find((l) => l.code === "mn");
+        setLanguageId(mn ? mn.id : list[0]?.id ?? null);
+      })
+      .catch(() => setLanguages([]));
+  }, []);
 
   const updateMeaning = (i: number, m: MeaningKey) =>
     setMeanings((arr) => arr.map((x, idx) => (idx === i ? m : x)));
 
   const addMeaning = () => setMeanings((arr) => [...arr, defaultMeaning()]);
-
   const removeMeaning = (i: number) =>
     setMeanings((arr) => (arr.length > 1 ? arr.filter((_, idx) => idx !== i) : arr));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-
     setError(null);
     setFieldErrors({});
     setLoading(true);
@@ -53,7 +71,7 @@ export function NewWordForm() {
       const res = await fetch("/api/contribute/new", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ word, meanings }),
+        body: JSON.stringify({ word, languageId, meanings }),
       });
       const data = await res.json();
 
@@ -80,25 +98,48 @@ export function NewWordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-      <div>
-        <label htmlFor="word" className="block text-sm font-medium mb-1.5">
-          Word *
-        </label>
-        <input
-          id="word"
-          type="text"
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
-          placeholder="e.g. ꯋꯥꯍꯩ"
-          className={inputClass}
-          required
-        />
-        {wordError && <p className="text-sm text-danger mt-1">{wordError}</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="word" className="block text-sm font-medium mb-1.5">
+            Word *
+          </label>
+          <input
+            id="word"
+            type="text"
+            value={word}
+            onChange={(e) => setWord(e.target.value)}
+            placeholder="e.g. ꯋꯥꯍꯩ"
+            className={inputClass}
+            required
+          />
+          {wordError && <p className="text-sm text-danger mt-1">{wordError}</p>}
+        </div>
+        <div>
+          <label htmlFor="language" className="block text-sm font-medium mb-1.5">
+            Language
+          </label>
+          <select
+            id="language"
+            value={languageId ?? ""}
+            onChange={(e) => setLanguageId(Number(e.target.value) || null)}
+            className={inputClass}
+          >
+            {languages.length === 0 && <option value="">Manipuri</option>}
+            {languages.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="space-y-4">
         <p className="text-sm font-semibold text-muted-foreground">
-          Meanings <span className="font-normal text-muted-2">(each meaning has its own word type)</span>
+          Meanings{" "}
+          <span className="font-normal text-muted-2">
+            (each meaning has its own word type)
+          </span>
         </p>
         {meanings.map((m, i) => (
           <MeaningEditor

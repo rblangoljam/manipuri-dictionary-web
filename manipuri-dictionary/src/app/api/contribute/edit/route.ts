@@ -5,16 +5,19 @@ import { editWordSchema } from "@/lib/validation/contribute";
 
 export const dynamic = "force-dynamic";
 
-async function ensureColumn() {
+async function ensureColumns() {
   try {
     await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS proposed_meanings JSON NULL`;
+    await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS proposal_type VARCHAR(32) NULL`;
+    await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS proposed_data JSON NULL`;
+    await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS language_id INT NULL`;
   } catch {
     // Older MySQL may not support ADD COLUMN IF NOT EXISTS; ignore.
   }
 }
 
 export async function POST(request: Request) {
-  await ensureColumn();
+  await ensureColumns();
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { wordId, senseId, word, meanings } = parsed.data;
+    const { wordId, senseId, word, meanings, languageId } = parsed.data;
     const first = meanings[0];
     const wordtype = first.wordtypeRaw ?? first.wordType;
     const definition = first.definition;
@@ -43,18 +46,30 @@ export async function POST(request: Request) {
     const synonyms = first.synonyms ?? "";
     const antonyms = first.antonyms ?? "";
     const meaningsJson = JSON.stringify(meanings);
+    const proposedData = JSON.stringify({ proposal_type: "update_meaning", languageId: languageId ?? null, word, meanings });
     const userId = parseInt(session.user.id, 10);
+
+    const lang = languageId
+      ? await prisma.$queryRaw<Array<{ id: number }>>`
+          SELECT id FROM languages WHERE id = ${Number(languageId)} OR language_code = ${String(languageId)} LIMIT 1
+        `
+      : await prisma.$queryRaw<Array<{ id: number }>>`
+          SELECT id FROM languages WHERE language_code = 'mn' LIMIT 1
+        `;
+    const languageDbId = lang[0]?.id ?? null;
 
     const result = await prisma.$executeRaw`
       INSERT INTO edit_proposals (
         sense_id, word_id, proposed_word, proposed_wordtype,
         proposed_definition, proposed_meaning_eng_man, proposed_meaning_mm,
-        proposed_antonyms, proposed_synonyms, proposed_meanings, status, submitted_by
+        proposed_antonyms, proposed_synonyms, proposed_meanings,
+        proposal_type, proposed_data, language_id, status, submitted_by
       )
       VALUES (
         ${senseId || null}, ${parseInt(wordId, 10) || null}, ${word}, ${wordtype},
         ${definition}, ${meaningEngMan}, ${meaningMm},
-        ${antonyms}, ${synonyms}, ${meaningsJson}, 'pending', ${userId}
+        ${antonyms}, ${synonyms}, ${meaningsJson},
+        'update_meaning', ${proposedData}, ${languageDbId}, 'pending', ${userId}
       )
     `;
 

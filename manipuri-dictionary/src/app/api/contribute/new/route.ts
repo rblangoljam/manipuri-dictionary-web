@@ -5,16 +5,19 @@ import { newWordSchema } from "@/lib/validation/contribute";
 
 export const dynamic = "force-dynamic";
 
-async function ensureColumn() {
+async function ensureColumns() {
   try {
     await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS proposed_meanings JSON NULL`;
+    await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS proposal_type VARCHAR(32) NULL`;
+    await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS proposed_data JSON NULL`;
+    await prisma.$executeRaw`ALTER TABLE edit_proposals ADD COLUMN IF NOT EXISTS language_id INT NULL`;
   } catch {
     // Older MySQL may not support ADD COLUMN IF NOT EXISTS; ignore.
   }
 }
 
 export async function POST(request: Request) {
-  await ensureColumn();
+  await ensureColumns();
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -34,9 +37,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { word, meanings } = parsed.data;
-    // Legacy moderation columns are driven by the first meaning; the complete
-    // per-meaning structure is stored as JSON in `proposed_meanings`.
+    const { word, meanings, languageId } = parsed.data;
     const first = meanings[0];
     const wordtype = first.wordtypeRaw ?? first.wordType;
     const definition = first.definition;
@@ -45,7 +46,18 @@ export async function POST(request: Request) {
     const synonyms = first.synonyms ?? "";
     const antonyms = first.antonyms ?? "";
     const meaningsJson = JSON.stringify(meanings);
+    const proposedData = JSON.stringify({ proposal_type: "create_word", languageId: languageId ?? null, word, meanings });
     const userId = parseInt(session.user.id, 10);
+
+    // Resolve language (default manipuri)
+    const lang = languageId
+      ? await prisma.$queryRaw<Array<{ id: number }>>`
+          SELECT id FROM languages WHERE id = ${Number(languageId)} OR language_code = ${String(languageId)} LIMIT 1
+        `
+      : await prisma.$queryRaw<Array<{ id: number }>>`
+          SELECT id FROM languages WHERE language_code = 'mn' LIMIT 1
+        `;
+    const languageDbId = lang[0]?.id ?? null;
 
     const existing = await prisma.$queryRaw`
       SELECT id FROM words WHERE word = ${word} LIMIT 1
@@ -59,12 +71,14 @@ export async function POST(request: Request) {
       INSERT INTO edit_proposals (
         sense_id, word_id, proposed_word, proposed_wordtype,
         proposed_definition, proposed_meaning_eng_man, proposed_meaning_mm,
-        proposed_antonyms, proposed_synonyms, proposed_meanings, status, submitted_by
+        proposed_antonyms, proposed_synonyms, proposed_meanings,
+        proposal_type, proposed_data, language_id, status, submitted_by
       )
       VALUES (
         NULL, ${wordId}, ${word}, ${wordtype},
         ${definition}, ${meaningEngMan}, ${meaningMm},
-        ${antonyms}, ${synonyms}, ${meaningsJson}, 'pending', ${userId}
+        ${antonyms}, ${synonyms}, ${meaningsJson},
+        'create_word', ${proposedData}, ${languageDbId}, 'pending', ${userId}
       )
     `;
 

@@ -28,6 +28,12 @@ interface WordData {
   senses: SenseData[];
 }
 
+interface LanguageOption {
+  id: number;
+  name: string;
+  code: string;
+}
+
 function senseToMeaning(s: SenseData): MeaningKey {
   const { wordType, grammar } = normalizeLegacyWordType(s.wordtype);
   return {
@@ -64,7 +70,16 @@ export function EditWordForm({ slug }: { slug: string }) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [wordId, setWordId] = useState("");
   const [word, setWord] = useState("");
+  const [languageId, setLanguageId] = useState<number | null>(null);
+  const [languages, setLanguages] = useState<LanguageOption[]>([]);
   const [meanings, setMeanings] = useState<MeaningKey[]>([]);
+
+  useEffect(() => {
+    fetch("/api/languages")
+      .then((r) => r.json())
+      .then((d) => setLanguages(d.languages ?? []))
+      .catch(() => setLanguages([]));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +96,10 @@ export function EditWordForm({ slug }: { slug: string }) {
         setWordId(w.id);
         setWord(w.word);
         setMeanings(w.senses.length ? w.senses.map(senseToMeaning) : [defaultMeaning()]);
+        if (languages.length) {
+          const mn = languages.find((l) => l.code === "mn");
+          setLanguageId(mn ? mn.id : languages[0].id);
+        }
       } catch {
         if (!cancelled) setNotFound(true);
       } finally {
@@ -89,7 +108,7 @@ export function EditWordForm({ slug }: { slug: string }) {
     }
     loadWord();
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [slug, languages.length]);
 
   const updateMeaning = (i: number, m: MeaningKey) =>
     setMeanings((arr) => arr.map((x, idx) => (idx === i ? m : x)));
@@ -109,7 +128,7 @@ export function EditWordForm({ slug }: { slug: string }) {
       const res = await fetch("/api/contribute/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wordId, word, meanings }),
+        body: JSON.stringify({ wordId, word, languageId, meanings }),
       });
       const data = await res.json();
 
@@ -161,19 +180,39 @@ export function EditWordForm({ slug }: { slug: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-      <div>
-        <label htmlFor="word" className="block text-sm font-medium mb-1.5">
-          Word *
-        </label>
-        <input
-          id="word"
-          type="text"
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
-          className={inputClass}
-          required
-        />
-        {wordError && <p className="text-sm text-danger mt-1">{wordError}</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="word" className="block text-sm font-medium mb-1.5">
+            Word *
+          </label>
+          <input
+            id="word"
+            type="text"
+            value={word}
+            onChange={(e) => setWord(e.target.value)}
+            className={inputClass}
+            required
+          />
+          {wordError && <p className="text-sm text-danger mt-1">{wordError}</p>}
+        </div>
+        <div>
+          <label htmlFor="language" className="block text-sm font-medium mb-1.5">
+            Language
+          </label>
+          <select
+            id="language"
+            value={languageId ?? ""}
+            onChange={(e) => setLanguageId(Number(e.target.value) || null)}
+            className={inputClass}
+          >
+            {languages.length === 0 && <option value="">Manipuri</option>}
+            {languages.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="space-y-4">

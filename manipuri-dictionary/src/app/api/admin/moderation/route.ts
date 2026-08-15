@@ -67,7 +67,6 @@ export async function GET(request: Request) {
       LIMIT 100
     `;
 
-    // Convert BigInt to strings
     const proposals = rows.map((r) => ({
       ...r,
       id: r.id.toString(),
@@ -100,7 +99,6 @@ export async function POST(request: Request) {
     const moderatorId = parseInt(session.user.id, 10);
     const status = action === "approve" ? "approved" : "rejected";
 
-    // Fetch the proposal
     const rows = await prisma.$queryRaw<Array<{
       id: bigint;
       sense_id: bigint | null;
@@ -129,16 +127,13 @@ export async function POST(request: Request) {
     const proposal = rows[0];
     const userId = proposal.submitted_by;
 
-    // If approving a new word, insert into words + word_senses.
     let insertedWordId: bigint | null = null;
     if (status === "approved") {
-      // Check if word already exists
       const existing = await prisma.$queryRaw<Array<{ id: bigint }>>`
         SELECT id FROM words WHERE word = ${proposal.proposed_word} LIMIT 1
       `;
 
       if (existing[0]) {
-        // Link to existing word and add a new sense
         await prisma.$executeRaw`
           INSERT INTO word_senses (
             word_id, wordtype, wordtype_raw, definition, meaning_eng_man,
@@ -152,14 +147,12 @@ export async function POST(request: Request) {
         `;
         insertedWordId = existing[0].id;
       } else {
-        // Create new word + sense
         const slug = proposal.proposed_word.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "word";
         const firstLetter = proposal.proposed_word.charAt(0).toUpperCase() || "?";
-        const insertResult = await prisma.$executeRaw`
+        await prisma.$executeRaw`
           INSERT INTO words (word, slug, first_letter, search_index)
           VALUES (${proposal.proposed_word}, ${slug}, ${firstLetter}, ${proposal.proposed_word.toLowerCase()})
         `;
-        void insertResult;
 
         const newWord = await prisma.$queryRaw<Array<{ id: bigint }>>`
           SELECT id FROM words WHERE slug = ${slug} LIMIT 1
@@ -182,6 +175,19 @@ export async function POST(request: Request) {
       }
     }
 
+    // Copy the proposal's language onto the created word (non-destructive)
+    if (status === "approved" && insertedWordId) {
+      const langRow = await prisma.$queryRaw<Array<{ language_id: number | null }>>`
+        SELECT language_id FROM edit_proposals WHERE id = ${BigInt(proposalId)} LIMIT 1
+      `;
+      const langId = langRow[0]?.language_id ?? null;
+      if (langId) {
+        await prisma.$executeRaw`
+          UPDATE words SET language_id = ${langId} WHERE id = ${insertedWordId}
+        `;
+      }
+    }
+
     // Update the proposal status
     await prisma.$executeRaw`
       UPDATE edit_proposals
@@ -190,7 +196,6 @@ export async function POST(request: Request) {
       WHERE id = ${BigInt(proposalId)}
     `;
 
-    // Update contributor stats
     if (status === "approved") {
       await prisma.$executeRaw`
         UPDATE users SET nos_word_approved = nos_word_approved + 1 WHERE id = ${userId}
@@ -201,7 +206,6 @@ export async function POST(request: Request) {
       `;
     }
 
-    // Audit log
     await prisma.$executeRaw`
       INSERT INTO moderation_logs (moderator_id, proposal_id, action, note)
       VALUES (${moderatorId}, ${BigInt(proposalId)}, ${action}, ${note || null})
