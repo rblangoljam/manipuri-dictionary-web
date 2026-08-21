@@ -26,8 +26,9 @@ well-known.zip
 *.log
 
 # Extracted EPUB pages (regenerable from the .epub source files)
-data/epub_unzipped/
-ia_dli_csl_6718/epub_unzipped/
+data/
+ia_dli_csl_6718/
+ia_metadata.json
 
 # OS junk
 .DS_Store
